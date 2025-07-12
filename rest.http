@@ -1,0 +1,10 @@
+POST http://localhost:5000/send-inquiry
+Content-Type: application/json
+
+{
+    "name": "Parnika Bala",
+    "email": "tejaswikurapati88@gmail.com",
+    "message": "Message to be sent to mail", 
+    "products": ["pro1", "pro2", "pro3"]
+}
+
