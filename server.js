@@ -16,13 +16,24 @@ app.post('/send-inquiry', async (req, res) => {
             quantity,
             } = req.body;
 
-  const transporter = nodemailer.createTransport({
+  /*const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS 
     }
+  });*/
+
+  let transporter = nodemailer.createTransport({
+    host: 'smtp.zoho.in',
+    port: 465,
+    secure: true, // true for port 465, false for 587
+    auth: {
+      user: 'info@evergrow.ae',       // your Zoho mail
+      pass: 'your_app_password_here',   // app password
+    },
   });
+
 
   const mailOptions = {
     from: email,
