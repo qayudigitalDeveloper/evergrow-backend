@@ -10,34 +10,30 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/send-inquiry', async (req, res) => {
-  const { name, email, message, products, 
-            mobileNum,
-            companyName,
-            quantity,
-            } = req.body;
+  const { name, email, message, products,
+    mobileNum,
+    companyName,
+    quantity,
+  } = req.body;
 
-  /*const transporter = nodemailer.createTransport({
-    service: 'gmail',
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: true, // true for 465, false for 587
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS 
-    }
-  });*/
-
-  let transporter = nodemailer.createTransport({
-    host: 'smtp.zoho.in',
-    port: 465,
-    secure: true, // true for port 465, false for 587
-    auth: {
-      user: 'info@evergrow.ae',       // your Zoho mail
-      pass: 'your_app_password_here',   // app password
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    }
   });
 
 
   const mailOptions = {
-    from: email,
-    to: process.env.EMAIL_USER,
+    from: `"${name}" <Evergrow@evergrow.ae>'`,
+    to: process.env.TO_EMAIL,
+    replyTo: email, 
     subject: `New Inquiry from ${name}`,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -49,10 +45,9 @@ app.post('/send-inquiry', async (req, res) => {
       <p><strong>Phone Number:</strong> ${mobileNum}</p>
       <p><strong>Products Interested:</strong> ${products.join(', ')}</p>
       <p><strong>Quantity:</strong> ${quantity}</p>
-      ${
-        message
-          ? `<p><strong>Additional Message:</strong><br>${message}</p>`
-          : ''
+      ${message
+        ? `<p><strong>Additional Message:</strong><br>${message}</p>`
+        : ''
       }
 
       <hr style="margin: 20px 0;" />
@@ -61,8 +56,28 @@ app.post('/send-inquiry', async (req, res) => {
     `
   };
 
+  
+
   try {
     await transporter.sendMail(mailOptions);
+
+    const userMail = {
+      from: `"EverGrow" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: "We received your message!",
+      html: `
+        <h2>Hi ${name},</h2>
+        <p>Thank you for reaching out to us. We’ve received your message and will get back to you shortly.</p>
+        <hr />
+        <p><strong>Your Message:</strong></p>
+        <p>${message}</p>
+        <br/>
+        <p>Best regards,<br/>EverGrow Team</p>
+      `,
+    };
+
+    await transporter.sendMail(userMail);
+
     res.status(200).json({ message: "Email sent successfully!" });
   } catch (error) {
     console.error("Nodemailer error:", error);
